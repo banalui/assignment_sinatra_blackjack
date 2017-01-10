@@ -1,5 +1,5 @@
 module CardHelper
-	def string_rank(rank)
+  def string_rank(rank)
 		string_rank = rank.to_s
 		case rank
 		when 11
@@ -14,14 +14,7 @@ module CardHelper
 		string_rank
 	end
 
-	def create_deck
-		suits = ["❤️", "♠️", "♦️", "♣️"]
-		ranks = (1..13).to_a
-		cards = ranks.product(suits)
-		cards.shuffle
-	end
-
-	def save_deck(deck)
+	  def save_deck(deck)
     	session[:deck] = deck
   	end
 
@@ -43,25 +36,6 @@ module CardHelper
 
   	def load_deck
     	session[:deck]
-  	end
-
-  	def deal_one_card!(deck)
-  		card = deck.pop
-  	end
-
-  	def calculate_points(cards)
-  		points = 0
-  		cards.each do |card|
-  			case card[0]
-  			when 11, 12, 13
-  				points += 10
-  			when 1
-  				(points < 11) ? points += 11 : points += 1
-  			else
-  				points += card[0]
-  			end
-  		end
-  		points
   	end
 
   	def find_winner(final_player_points, final_dealer_points)

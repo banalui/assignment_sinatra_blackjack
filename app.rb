@@ -2,7 +2,9 @@ require "sinatra"
 require "sinatra/reloader" if development?
 require "erb"
 require "bundler/setup"
-require './helpers/card_helper.rb'
+require "./helpers/card_helper.rb"
+require "./player.rb"
+require "./deck.rb"
 
 helpers CardHelper
 
@@ -13,31 +15,37 @@ get '/' do
 end
 
 get '/blackjack' do
-	deck = create_deck
-	player_cards = []
-	dealer_cards = []
-	player_cards << deal_one_card!(deck)
-	dealer_cards << deal_one_card!(deck)
-	player_cards << deal_one_card!(deck)
-	dealer_cards << deal_one_card!(deck)
+	deck = Deck.create_deck
+	player_hand = []
+	dealer_hand = []
+	player_hand << Deck.deal_one_card!(deck)
+	dealer_hand << Deck.deal_one_card!(deck)
+	player_hand << Deck.deal_one_card!(deck)
+	dealer_hand << Deck.deal_one_card!(deck)
+	player = Player.new(player_hand)
+	dealer = Player.new(dealer_hand)
+	player.play
+	dealer.rest
 	save_deck(deck)
-	save_player_hand(player_cards)
-	save_dealer_hand(dealer_cards)
-	reached_21 = (calculate_points(player_cards) == 21)
-	erb :blackjack, locals: { player_cards: player_cards, dealer_cards: dealer_cards, dealer_play: false , reached_21: reached_21, finished: false}
+	save_player_hand(player_hand)
+	save_dealer_hand(dealer_hand)
+	reached_21 = (player.points == 21)
+	erb :blackjack, locals: { player: player, dealer: dealer, finished: false}
 end
 
 post '/blackjack/hit' do
 	player_hand = load_player_hand
 	dealer_hand = load_dealer_hand
+	player = Player.new(player_hand)
+	dealer = Player.new(dealer_hand)
+	player.play
+	dealer.rest
 	deck = load_deck
-	player_hand << deal_one_card!(deck)
-	player_points = calculate_points(player_hand)
-	reached_21 = (calculate_points(player_hand) == 21)
-	if player_points > 21
+	player.cards << Deck.deal_one_card!(deck)
+	if player.points > 21
 		redirect to("/blackjack/stay"), "Now dealer has to play"
 	else
-		erb :blackjack, locals: { player_cards: player_hand, dealer_cards: dealer_hand, dealer_play: false, reached_21: reached_21, finished: false}
+		erb :blackjack, locals: { player: player, dealer: dealer, finished: false}
 	end
 	
 end
@@ -45,12 +53,13 @@ end
 get '/blackjack/stay' do
 	player_hand = load_player_hand
 	dealer_hand = load_dealer_hand
+	player = Player.new(player_hand)
+	dealer = Player.new(dealer_hand)
+	player.rest
+	dealer.play
 	deck = load_deck
-	dealer_points = calculate_points(dealer_hand)
-	reached_21 = (calculate_points(player_hand) == 21)
-	while dealer_points < 17
-		dealer_hand << deal_one_card!(deck)
-		dealer_points = calculate_points(dealer_hand)
+	while dealer.points < 17
+		dealer.cards << Deck.deal_one_card!(deck)
 	end
-	erb :blackjack, locals: { player_cards: player_hand, dealer_cards: dealer_hand, dealer_play: true, reached_21: reached_21, finished: true}
+	erb :blackjack, locals: { player: player, dealer: dealer, finished: true}
 end
