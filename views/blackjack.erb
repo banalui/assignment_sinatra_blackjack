@@ -1,0 +1,41 @@
+
+<% if dealer_play %>
+	<h2>Here are dealer cards(<%= calculate_points(dealer_cards) %>)</h2>
+<% else %>
+	<h2>Here are dealer cards(<%= calculate_points([dealer_cards[0]]) %>)</h2>
+<% end %>
+
+	<% if dealer_play %>
+		<% dealer_cards.each do |card| %>
+			<%= string_rank(card[0]) %><%= card[1] %><br>
+		<% end %>
+	<% else %>
+		<%= string_rank(dealer_cards[0][0]) %><%= dealer_cards[0][1] %><br>
+	<% end %>
+<h2>Here are player cards(<%= calculate_points(player_cards) %>)</h2>
+
+	<% player_cards.each do |card| %>
+		<%= string_rank(card[0]) %><%= card[1] %><br>
+	<% end %>
+
+	<br><br><br><br>
+
+<% unless finished %>
+
+	<form action="/blackjack/hit" method="post">
+
+	<% if reached_21 %>	
+    	<input type="submit" value="HIT" disabled/>
+	<% else %>
+		<input type="submit" value="HIT"/>
+	<% end %>
+
+	</form>
+
+	<form action="/blackjack/stay" method="get">
+    	<input type="submit" value="STAY" />
+	</form>
+<% else %>
+	<h3><%= find_winner(calculate_points(player_cards), calculate_points(dealer_cards)) %><h3><br>
+	<a href="/">Play Again</a>
+<% end %>
